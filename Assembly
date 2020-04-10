@@ -117,8 +117,10 @@ Int1_allon:
 	PUSH R16 // put R16 data onto the stack in case there is useful information in that register from Main program
 	IN R16, SREG
 	PUSH R16 // push Status Register onto the Stack
-
+	
 	LDI R17, 0b11110000 ;Turn all lights on
+	out PORTC, R17
+
 	Call wait
 	LDI R16, 0b00000010 ; clear the INT1 flag bit (in case the interrupt was set during the ISR -- as in switch bounce). 
 	OUT EIFR, R16
@@ -138,7 +140,7 @@ OUT PORTC, R17		; turn off all LEDs (they are active low)
 
 LDI R18, 0b11111111 ; Define PortD as input 
 out DDRD, R18
-out PORTD, R16 ;Pin initially high
+out PORTD, R18  ;Pin initially high
 
 /* Initialize stack */
 LDI R16, HIGH(RAMEND) ; Init HSB stack
@@ -169,6 +171,7 @@ OUT PORTC, R17
 ;CHECK IF BUTTONS PRESSED
 SBIS PIND, 0 ;if button isnt pressed skip the interrupt
 call int0_binarycount
+
 SBIS PIND,1 ;If button pressed going to int1
 call int1_allon
 CALL wait
