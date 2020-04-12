@@ -33,7 +33,7 @@ Int0_binarycount:
 	IN R16, SREG 
 	PUSH R16 // push Status Register onto the Stack
 
-	// May have to preserve other important register information. Note that the program counter is automatically pushed to the stack.
+        //Binary Count
 	LDI R17, 0b11111110 ;1
 	OUT PORTC, R17
 	CALL wait
@@ -112,12 +112,12 @@ Int1_allon:
 
 
 Main:
-LDI R17, 0b11111111  ; define Port C bits output
-OUT DDRC, R17
-OUT PORTC, R17		; turn off all LEDs (they are active low)
+LDI R17, 0b11111111  ; Load 0XFF into register 17
+OUT DDRC, R17        ; define PORTC bits as output
+OUT PORTC, R17	     ; turn off all LEDs (they are active low)
 
-LDI R18, 0b11111111 ; Define PortD as input 
-out DDRD, R18
+LDI R18, 0b11111111 ; Load 0XFF into register 18
+out DDRD, R18.      ; Define PORTD as input
 out PORTD, R18  ;Pin initially high
 
 /* Initialize stack */
@@ -143,28 +143,30 @@ STS EICRA, R16
 SEI // Set Global Interrupt Enable.  Interrupts can occur after this point.
 
 Loop_main:
-LDI R17, 0b11111110
-OUT PORTC, R17
+LDI R17, 0b11111110 ; ;Load into register 17
+OUT PORTC, R17      ;1st light on
 
-;CHECK IF BUTTONS PRESSED
+;CHECK IF BUTTON 0 IS PRESSED
 SBIS PIND, 0 ;if button isnt pressed skip the interrupt
 call int0_binarycount
 
+;CHECK IF BUTTON 1 IS PRESSED
 SBIS PIND,1 ;If button pressed going to int1
 call int1_allon
 CALL wait
 
 ;GO TO NEXT LIGHT
-LDI R17, 0b11111101
-OUT PORTC, R17
+LDI R17, 0b11111101 
+OUT PORTC, R17 ;Second Light
 
 
 CALL wait
 LDI R17, 0b11111011
-OUT PORTC, R17
+OUT PORTC, R17 ; 3rd Light on 
 CALL wait
+
 LDI R17, 0b11110111
-OUT PORTC, R17
+OUT PORTC, R17 ; 4th Light on
 CALL wait
 
 RJMP Loop_main
@@ -178,16 +180,16 @@ wait: // this subroutine creates a delay of 0-255 msec by repeatedly calling del
 	LDI R22, 250 // choose the number of msec to delay
 	count_down:
 	CALL delay_1msec
-	DEC R22
-	BRNE count_down
+	DEC R22 ; Decreases R22 by 1 
+	BRNE count_down 
 	RET // return from subroutine
 
 delay_1msec: // this subroutine creates a 1msec delay with TIMER0 register and prescaler of 64 (assumes 16MHz clock)
 	LDI R20, 0x00 // clears WGM00 and WGM01 (bits 0 and 1) to ensure Timer/Counter is in normal mode.
-	OUT TCCR0A, R20
+	OUT TCCR0A, R20 ; Sends Data in R20 to TCCR0A
 	
 	LDI R20, 0x00 // clear timer register
-	OUT TCNT0, R20
+	OUT TCNT0, R20 ;Sends R20 to TCNT0
 	
 	LDI R21, 250 // set desired count value for later compare
 		
@@ -196,8 +198,8 @@ delay_1msec: // this subroutine creates a 1msec delay with TIMER0 register and p
 
 	keep_counting:
 	IN R20, TCNT0  //read TCNT0 and compare to desired count.  Loop until count = 250.
-	CPSE R20, R21
-	RJMP keep_counting
+	CPSE R20, R21 ; If R20=R21 skip RJMP
+	RJMP keep_counting ;Restart the loop
 
 	LDI R20, 0x00; // Stop TIMER0
 	OUT TCCR0B, R20
